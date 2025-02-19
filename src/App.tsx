@@ -1,11 +1,36 @@
+/*  *//*  */import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Box, Container, CssBaseline } from '@mui/material';
+import Header from './components/layout/Header';
+import { TimeManagementProvider } from './contexts/TimeManagementContext';
 import './App.css';
 
-const App = () => {
+// Lazy load pages for better performance
+const DashboardPage = React.lazy(() => import('./pages/DashboardPage'));
+const TimeEntryPage = React.lazy(() => import('./pages/TimeEntryPage'));
+const CategoriesPage = React.lazy(() => import('./pages/CategoriesPage'));
+const StatisticsPage = React.lazy(() => import('./pages/StatisticsPage'));
+
+const App: React.FC = () => {
   return (
-    <div className="content">
-      <h1>Rsbuild with React</h1>
-      <p>Start building amazing things with Rsbuild.</p>
-    </div>
+    <TimeManagementProvider>
+      <Router>
+        <CssBaseline />
+        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+          <Header />
+          <Container component="main" sx={{ flexGrow: 1, py: 3 }}>
+            <React.Suspense fallback={<div>Loading...</div>}>
+              <Routes>
+                <Route path="/" element={<DashboardPage />} />
+                <Route path="/time-entry" element={<TimeEntryPage />} />
+                <Route path="/categories" element={<CategoriesPage />} />
+                <Route path="/statistics" element={<StatisticsPage />} />
+              </Routes>
+            </React.Suspense>
+          </Container>
+        </Box>
+      </Router>
+    </TimeManagementProvider>
   );
 };
 
