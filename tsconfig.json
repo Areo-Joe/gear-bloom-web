@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
     "lib": ["DOM", "ES2020"],
-    "jsx": "react-jsx",
+    "jsx": "react",
+    "types": ["react", "react-dom"],
     "target": "ES2020",
     "noEmit": true,
     "skipLibCheck": true,
