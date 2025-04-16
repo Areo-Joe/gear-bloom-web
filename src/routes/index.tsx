@@ -14,6 +14,9 @@ function Index() {
   const [activity, setActivity] = React.useState("");
   const [duration, setDuration] = React.useState<number | null>(null);
 
+  // 使用一个ref来存储输入元素
+  const durationInputRef = React.useRef<HTMLInputElement>(null);
+
   const handleNext = () => {
     if (step === 1 && activity.trim() !== "") {
       setStep(2);
@@ -27,65 +30,28 @@ function Index() {
     setActivity(e.target.value);
   };
 
-  const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+  // 处理时长输入的变更，使用输入事件而不是变更事件
+  const handleDurationInput = (e: React.FormEvent<HTMLInputElement>) => {
+    const input = e.target as HTMLInputElement;
 
-    // 如果输入为空，设置为 null
-    if (value === "") {
+    // 移除所有非数字字符
+    const numericValue = input.value.replace(/\D/g, "");
+
+    // 如果用户输入了非数字字符，立即更正输入框的值
+    if (input.value !== numericValue) {
+      input.value = numericValue;
+    }
+
+    // 更新状态
+    if (numericValue === "") {
       setDuration(null);
-      return;
+    } else {
+      const num = parseInt(numericValue, 10);
+      setDuration(num);
     }
-
-    // 只处理纯数字输入
-    if (/^\d+$/.test(value)) {
-      const numValue = parseInt(value, 10);
-      if (numValue >= 0) {
-        setDuration(numValue);
-      }
-    }
-    // 如果输入的不是纯数字，我们不更新状态，保持原来的值
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleNext();
-    }
-  };
-
-  // 专门用于处理 duration 输入框的按键事件
-  const handleDurationKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    // 允许: 数字键 (0-9), Backspace, Delete, Tab, Escape, Enter, 方向键
-    const allowedKeys = [
-      "0",
-      "1",
-      "2",
-      "3",
-      "4",
-      "5",
-      "6",
-      "7",
-      "8",
-      "9",
-      "Backspace",
-      "Delete",
-      "Tab",
-      "Escape",
-      "Enter",
-      "ArrowLeft",
-      "ArrowRight",
-      "ArrowUp",
-      "ArrowDown",
-      "Home",
-      "End",
-    ];
-
-    // 如果按下的键不在允许列表中，且不是功能键组合 (如 Ctrl+A, Ctrl+C)
-    if (!allowedKeys.includes(e.key) && !(e.ctrlKey || e.metaKey)) {
-      e.preventDefault(); // 阻止默认行为
-    }
-
-    // 如果是 Enter 键，执行 handleNext 逻辑
     if (e.key === "Enter") {
       e.preventDefault();
       handleNext();
@@ -100,7 +66,6 @@ function Index() {
     placeholder: string,
     inputType: string = "text",
     min?: number,
-    isDurationInput: boolean = false, // 新增参数，标识是否为 duration 输入框
   ) => (
     <div className="space-y-2 w-full">
       <Label htmlFor={id} className="block text-center">
@@ -110,9 +75,9 @@ function Index() {
         id={id}
         value={value === null ? "" : value.toString()}
         onChange={onChange}
-        onKeyDown={isDurationInput ? handleDurationKeyDown : handleKeyDown} // 根据输入类型选择不同的按键处理函数
+        onKeyDown={handleKeyDown}
         placeholder={placeholder}
-        type={inputType} // 对于 duration 我们保留 number 类型，但增加键盘过滤
+        type={inputType}
         min={min}
         autoFocus
         className="w-full"
@@ -159,16 +124,25 @@ function Index() {
               任务:{" "}
               <span className="font-medium text-foreground">{activity}</span>
             </p>
-            {renderInputSection(
-              "duration-input",
-              "你在这件事上花了多少分钟？",
-              duration,
-              handleDurationChange,
-              "输入分钟数，例如 90",
-              "number",
-              1,
-              true,
-            )}
+            <div className="space-y-2 w-full">
+              <Label htmlFor="duration-input" className="block text-center">
+                你在这件事上花了多少分钟？
+              </Label>
+              <Input
+                id="duration-input"
+                ref={durationInputRef}
+                defaultValue={duration === null ? "" : duration.toString()}
+                onInput={handleDurationInput}
+                onKeyDown={handleKeyDown}
+                placeholder="输入分钟数，例如 90"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                min={1}
+                autoFocus
+                className="w-full"
+              />
+            </div>
             <Button
               onClick={handleNext}
               disabled={duration === null || duration <= 0}
