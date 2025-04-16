@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useState, useRef } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,12 +11,12 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const [step, setStep] = React.useState(1);
-  const [activity, setActivity] = React.useState("");
-  const [duration, setDuration] = React.useState<number | null>(null);
+  const [step, setStep] = useState(1);
+  const [activity, setActivity] = useState("");
+  const [duration, setDuration] = useState<number | null>(null);
 
   // 使用一个ref来存储输入元素
-  const durationInputRef = React.useRef<HTMLInputElement>(null);
+  const durationInputRef = useRef<HTMLInputElement>(null);
 
   const handleNext = () => {
     if (step === 1 && activity.trim() !== "") {
