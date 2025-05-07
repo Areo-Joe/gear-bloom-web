@@ -47,6 +47,8 @@ interface FormData {
   activity: string;
   duration: number | null;
   completionTime: Date | null;
+  description: string;
+  tags: string[];
 }
 
 // Step Components
@@ -168,11 +170,20 @@ const DurationStep = ({
 const CompletionStep = ({
   formData,
   onReset,
+  updateFormField,
 }: {
   formData: FormData;
   onReset: () => void;
+  updateFormField: <K extends keyof FormData>(
+    field: K,
+    value: FormData[K],
+  ) => void;
 }) => {
-  const { activity, duration, completionTime } = formData;
+  const { activity, duration, completionTime, description, tags } = formData;
+  const [customTag, setCustomTag] = useState("");
+
+  // Default tag options
+  const defaultTags = ["工作", "学习", "运动", "阅读", "休息", "娱乐"];
 
   const calculateTimeRange = (): { start: string; end: string } | null => {
     if (!completionTime || duration === null) return null;
@@ -188,16 +199,43 @@ const CompletionStep = ({
 
   const timeRange = calculateTimeRange();
 
-  return (
-    <div className="p-6 border rounded-lg bg-gradient-to-b from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 text-green-800 dark:text-green-200 space-y-5 text-center">
-      <div className="flex justify-center mb-3">
-        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-100 to-green-200 dark:from-green-800/30 dark:to-green-700/40 flex items-center justify-center text-3xl shadow-inner">
-          ✓
-        </div>
-      </div>
+  const handleDescriptionChange = (
+    e: React.ChangeEvent<HTMLTextAreaElement>,
+  ) => {
+    updateFormField("description", e.target.value);
+  };
 
-      <div>
-        <h3 className="text-xl font-semibold text-green-900 dark:text-green-100 mb-2">
+  const toggleTag = (tag: string) => {
+    const newTags = tags.includes(tag)
+      ? tags.filter((t) => t !== tag)
+      : [...tags, tag];
+    updateFormField("tags", newTags);
+  };
+
+  const addCustomTag = () => {
+    if (customTag.trim() && !tags.includes(customTag.trim())) {
+      updateFormField("tags", [...tags, customTag.trim()]);
+      setCustomTag("");
+    }
+  };
+
+  const handleCustomTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && customTag.trim()) {
+      e.preventDefault();
+      addCustomTag();
+    }
+  };
+
+  return (
+    <div className="space-y-5">
+      <div className="p-4 border rounded-lg bg-gradient-to-b from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 text-green-800 dark:text-green-200 space-y-3 text-center">
+        <div className="flex justify-center mb-2">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-100 to-green-200 dark:from-green-800/30 dark:to-green-700/40 flex items-center justify-center text-2xl shadow-inner">
+            ✓
+          </div>
+        </div>
+
+        <h3 className="text-lg font-semibold text-green-900 dark:text-green-100">
           你太给力了！
         </h3>
         <p className="text-sm text-green-700 dark:text-green-300 max-w-xs mx-auto">
@@ -210,25 +248,103 @@ const CompletionStep = ({
           )}
           。
         </p>
+
+        {timeRange && (
+          <div className="bg-white/60 dark:bg-black/20 p-2 rounded-lg shadow-sm">
+            <div className="flex items-center justify-center space-x-3 text-sm">
+              <span>{timeRange.start}</span>
+              <div className="h-0.5 w-6 bg-green-300 dark:bg-green-700"></div>
+              <span>{timeRange.end}</span>
+            </div>
+          </div>
+        )}
       </div>
 
-      {timeRange && (
-        <div className="bg-white/60 dark:bg-black/20 p-3 rounded-lg shadow-sm">
-          <div className="flex items-center justify-center space-x-3 text-base">
-            <span>{timeRange.start}</span>
-            <div className="h-0.5 w-6 bg-green-300 dark:bg-green-700"></div>
-            <span>{timeRange.end}</span>
-          </div>
+      <div className="space-y-4 mt-4">
+        <div>
+          <Label
+            htmlFor="description"
+            className="block text-sm font-medium mb-2"
+          >
+            为你的活动添加描述
+          </Label>
+          <textarea
+            id="description"
+            value={description}
+            onChange={handleDescriptionChange}
+            placeholder="详细描述一下你完成的活动..."
+            className="w-full p-2 min-h-[80px] text-sm rounded-md border border-input bg-background"
+          />
         </div>
-      )}
 
-      <Button
-        onClick={onReset}
-        variant="outline"
-        className="w-full mt-6 border-green-300 dark:border-green-700 text-green-800 dark:text-green-200 hover:bg-green-100 dark:hover:bg-green-900/30"
-      >
-        记录下一项
-      </Button>
+        <div>
+          <Label className="block text-sm font-medium mb-2">添加标签</Label>
+          <div className="flex flex-wrap gap-2 mb-3">
+            {defaultTags.map((tag) => (
+              <button
+                key={tag}
+                onClick={() => toggleTag(tag)}
+                className={`px-3 py-1 text-xs rounded-full ${
+                  tags.includes(tag)
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                }`}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex gap-2">
+            <Input
+              value={customTag}
+              onChange={(e) => setCustomTag(e.target.value)}
+              onKeyDown={handleCustomTagKeyDown}
+              placeholder="添加自定义标签..."
+              className="flex-1"
+            />
+            <Button
+              onClick={addCustomTag}
+              size="sm"
+              variant="outline"
+              disabled={!customTag.trim()}
+            >
+              添加
+            </Button>
+          </div>
+
+          {tags.length > 0 && (
+            <div className="mt-3">
+              <p className="text-xs text-muted-foreground mb-1">已选标签:</p>
+              <div className="flex flex-wrap gap-1">
+                {tags.map((tag) => (
+                  <div
+                    key={tag}
+                    className="flex items-center bg-primary/10 text-primary px-2 py-1 rounded text-xs"
+                  >
+                    {tag}
+                    <button
+                      onClick={() => toggleTag(tag)}
+                      className="ml-1 hover:text-destructive"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="flex gap-2 mt-6">
+        <Button onClick={onReset} variant="outline" className="flex-1">
+          记录下一项
+        </Button>
+        <Button className="flex-1" onClick={onReset}>
+          保存记录
+        </Button>
+      </div>
     </div>
   );
 };
@@ -241,6 +357,8 @@ const ActivityTracker = () => {
     activity: "",
     duration: null,
     completionTime: null,
+    description: "",
+    tags: [],
   });
 
   // Record completion time when reaching step 3
@@ -268,6 +386,8 @@ const ActivityTracker = () => {
       activity: "",
       duration: null,
       completionTime: null,
+      description: "",
+      tags: [],
     });
   };
 
@@ -303,7 +423,7 @@ const ActivityTracker = () => {
           <h2 className="text-xl font-bold">
             {step === 1 && "记录新事项"}
             {step === 2 && "记录时间"}
-            {step === 3 && "太棒了！"}
+            {step === 3 && "完善记录"}
           </h2>
         </div>
 
@@ -325,7 +445,11 @@ const ActivityTracker = () => {
         )}
 
         {step === 3 && (
-          <CompletionStep formData={formData} onReset={resetForm} />
+          <CompletionStep
+            formData={formData}
+            onReset={resetForm}
+            updateFormField={updateFormField}
+          />
         )}
       </div>
     </div>
