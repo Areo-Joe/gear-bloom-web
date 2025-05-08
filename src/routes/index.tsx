@@ -130,7 +130,7 @@ const DurationStep = ({ title, onNext, setDuration }: IDurationStep) => {
     }
   };
 
-  const handleNext = useCallback(() => {
+  const handleNext = () => {
     if (time === null) {
       return;
     }
@@ -143,8 +143,7 @@ const DurationStep = ({ title, onNext, setDuration }: IDurationStep) => {
     const from = to - time * 60 * 1000;
 
     setDuration({ from, to });
-    onNext();
-  }, [time, onNext, setDuration]);
+  };
 
   return (
     <div className="space-y-4 flex flex-col items-center">
