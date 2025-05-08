@@ -205,6 +205,9 @@ const DetailStep = ({
   // Default tag options
   const defaultTags = ["工作", "学习", "运动", "阅读", "休息", "娱乐"];
 
+  // 计算持续时间（分钟）
+  const durationMinutes = Math.round((range.to - range.from) / 1000 / 60);
+
   const handleDescriptionChange = (
     e: React.ChangeEvent<HTMLTextAreaElement>,
   ) => {
@@ -256,8 +259,8 @@ const DetailStep = ({
           你刚刚完成了 <span className="font-medium">{title}</span> 的工作，
           <span>
             {" "}
-            投入了 {Math.round((range.to - range.from) / 1000 / 60)} 分钟的
-            {getEffortPhrase(Math.round((range.to - range.from) / 1000 / 60))}
+            投入了 {durationMinutes} 分钟的
+            {getEffortPhrase(durationMinutes)}
           </span>
           。
         </p>
