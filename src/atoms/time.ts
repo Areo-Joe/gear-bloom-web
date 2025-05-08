@@ -9,4 +9,4 @@ export interface TimeEntry {
   tags: string[];
 }
 
-export const timeEntries = atom<TimeEntry[]>([]);
+export const timeEntriesAtom = atom<TimeEntry[]>([]);

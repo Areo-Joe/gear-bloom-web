@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Steps } from "../components/ui/steps";
 import { toast, Toaster } from "sonner";
+import { timeEntriesAtom } from "../atoms/time";
+import { useAtom } from "jotai";
 
 // Icons
 const ListIcon = () => (
@@ -42,15 +44,6 @@ const getEffortPhrase = (mins: number): string => {
   if (mins <= 120) return "出色的持久专注";
   return "令人惊叹的持续努力";
 };
-
-// Types
-interface FormData {
-  activity: string;
-  duration: number | null;
-  completionTime: Date | null;
-  description: string;
-  tags: string[];
-}
 
 interface ITitleStep {
   title: string;
@@ -399,6 +392,14 @@ const ActivityTracker = () => {
   } | null>(null);
   const [timeEntryDescription, setTimeEntryDescription] = useState("");
   const [timeEntryTags, setTimeEntryTags] = useState<string[]>([]);
+  const [_, setTimeEntry] = useAtom(timeEntriesAtom);
+
+  const clearAll = () => {
+    setTimeEntryTitle("");
+    setTimeDuration(null);
+    setTimeEntryDescription("");
+    setTimeEntryTags([]);
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-10">
@@ -449,7 +450,27 @@ const ActivityTracker = () => {
             setDescription={setTimeEntryDescription}
             setTags={setTimeEntryTags}
             tags={timeEntryTags}
-            onNext={() => setStep(nextStep(step))}
+            onNext={() => {
+              console.log({
+                timeEntryDescription,
+                timeEntryTitle,
+                timeDuration,
+                timeEntryTags,
+              });
+              setTimeEntry((x) => [
+                ...x,
+                {
+                  id: crypto.randomUUID(),
+                  from: timeDuration!.from,
+                  to: timeDuration!.to,
+                  title: timeEntryTitle,
+                  description: timeEntryDescription,
+                  tags: timeEntryTags,
+                },
+              ]);
+              clearAll();
+              setStep(nextStep(step));
+            }}
           />
         )}
       </div>
