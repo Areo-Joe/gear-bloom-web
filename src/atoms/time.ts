@@ -1,9 +1,10 @@
 import { atom } from "jotai";
 
-interface TimeEntry {
+export interface TimeEntry {
   id: string;
   from: number;
   to: number;
+  title: string;
   description: string;
   tags: string[];
 }

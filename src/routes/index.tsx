@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,18 +51,16 @@ interface FormData {
   tags: string[];
 }
 
-// Step Components
-const ActivityStep = ({
-  activity,
-  setActivity,
-  onNext,
-}: {
-  activity: string;
-  setActivity: (value: string) => void;
+interface ITitleStep {
+  title: string;
+  setTitle: (value: string) => void;
   onNext: () => void;
-}) => {
-  const handleActivityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setActivity(e.target.value);
+}
+
+// Step Components
+const TitleStep = ({ title, setTitle, onNext }: ITitleStep) => {
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTitle(e.target.value);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -80,8 +78,8 @@ const ActivityStep = ({
         </Label>
         <Input
           id="activity-input"
-          value={activity}
-          onChange={handleActivityChange}
+          value={title}
+          onChange={handleTitleChange}
           onKeyDown={handleKeyDown}
           placeholder="例如：学习 React, 修复 Bug..."
           autoFocus
@@ -90,7 +88,7 @@ const ActivityStep = ({
       </div>
       <Button
         onClick={onNext}
-        disabled={activity.trim() === ""}
+        disabled={title.trim() === ""}
         className="w-full mt-4"
       >
         下一步
@@ -99,44 +97,59 @@ const ActivityStep = ({
   );
 };
 
-const DurationStep = ({
-  activity,
-  duration,
-  setDuration,
-  onNext,
-}: {
-  activity: string;
-  duration: number | null;
-  setDuration: (value: number | null) => void;
+interface IDurationStep {
+  title: string;
+  setDuration: (duration: { from: number; to: number }) => void;
   onNext: () => void;
-}) => {
+}
+
+const DurationStep = ({ title, onNext, setDuration }: IDurationStep) => {
+  const [time, setTime] = useState<null | number>(null);
+
   const handleDurationInput = (e: React.FormEvent<HTMLInputElement>) => {
-    const input = e.target as HTMLInputElement;
-    const numericValue = input.value.replace(/\D/g, "");
-
-    if (input.value !== numericValue) {
-      input.value = numericValue;
+    const value = (e.target as HTMLInputElement).value;
+    if (typeof value !== "string") {
+      setTime(null);
+      return;
     }
 
-    if (numericValue === "") {
-      setDuration(null);
-    } else {
-      const num = parseInt(numericValue, 10);
-      setDuration(num);
-    }
+    const numericValue = value.replace(/\D/g, "").trim();
+    setTime(numericValue === "" ? null : parseInt(numericValue));
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Prevent e, +, -, and other non-numeric characters
+    if (e.key === "e") {
+      e.preventDefault();
+      return;
+    }
+
     if (e.key === "Enter") {
       e.preventDefault();
-      onNext();
+      handleNext();
     }
   };
+
+  const handleNext = useCallback(() => {
+    if (time === null) {
+      return;
+    }
+
+    if (time <= 0) {
+      return;
+    }
+
+    const to = new Date().getTime();
+    const from = to - time * 60 * 1000;
+
+    setDuration({ from, to });
+    onNext();
+  }, [time, onNext, setDuration]);
 
   return (
     <div className="space-y-4 flex flex-col items-center">
       <p className="text-sm text-center text-muted-foreground mb-2">
-        任务: <span className="font-medium text-foreground">{activity}</span>
+        任务: <span className="font-medium text-foreground">{title}</span>
       </p>
       <div className="space-y-2 w-full">
         <Label htmlFor="duration-input" className="block text-center">
@@ -144,11 +157,11 @@ const DurationStep = ({
         </Label>
         <Input
           id="duration-input"
-          defaultValue={duration === null ? "" : duration.toString()}
+          value={time === null ? "" : `${time}`}
           onInput={handleDurationInput}
           onKeyDown={handleKeyDown}
           placeholder="输入分钟数，例如 90"
-          type="text"
+          type="number"
           inputMode="numeric"
           pattern="[0-9]*"
           min={1}
@@ -157,8 +170,8 @@ const DurationStep = ({
         />
       </div>
       <Button
-        onClick={onNext}
-        disabled={duration === null || duration <= 0}
+        onClick={handleNext}
+        disabled={time === null || time <= 0}
         className="w-full mt-4"
       >
         完成记录
@@ -349,51 +362,46 @@ const CompletionStep = ({
   );
 };
 
-// Main Container
-const ActivityTracker = () => {
+enum Step {
+  Title = 0,
+  Duration = 1,
+  Detail = 2,
+}
+
+function nextStep(step: Step): Step {
+  if (step === Step.Detail) {
+    return Step.Title;
+  }
+
+  return step + 1;
+}
+
+function prevStep(step: Step): Step {
+  if (step === Step.Title) {
+    throw new Error("Cannot go back from Title step");
+  }
+
+  return step - 1;
+}
+
+function useNavigateToList() {
   const navigate = useNavigate();
-  const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState<FormData>({
-    activity: "",
-    duration: null,
-    completionTime: null,
-    description: "",
-    tags: [],
-  });
-
-  // Record completion time when reaching step 3
-  useEffect(() => {
-    if (step === 3) {
-      setFormData((prev) => ({ ...prev, completionTime: new Date() }));
-    }
-  }, [step]);
-
-  const handleNext = () => {
-    if (step === 1 && formData.activity.trim() !== "") {
-      setStep(2);
-    } else if (
-      step === 2 &&
-      formData.duration !== null &&
-      formData.duration > 0
-    ) {
-      setStep(3);
-    }
-  };
-
-  const resetForm = () => {
-    setStep(1);
-    setFormData({
-      activity: "",
-      duration: null,
-      completionTime: null,
-      description: "",
-      tags: [],
-    });
-  };
-
-  const goToListPage = () => {
+  return () => {
     navigate({ to: "/list" });
   };
+}
+
+// Main Container
+const ActivityTracker = () => {
+  const navigateToList = useNavigateToList();
+  const [step, setStep] = useState<Step>(Step.Title);
+  const [timeEntryTitle, setTimeEntryTitle] = useState("");
+  const [timeRange, setTimeRange] = useState<{
+    start: string;
+    end: string;
+  } | null>(null);
+  const [timeEntryDescription, setTimeEntryDescription] = useState("");
+  const [timeEntryTags, setTimeEntryTags] = useState<string[]>([]);
 
   const updateFormField = <K extends keyof FormData>(
     field: K,
@@ -409,7 +417,7 @@ const ActivityTracker = () => {
           <Button
             variant="outline"
             size="sm"
-            onClick={goToListPage}
+            onClick={navigateToList}
             className="flex items-center gap-1"
           >
             <ListIcon />
@@ -417,34 +425,33 @@ const ActivityTracker = () => {
           </Button>
         </div>
 
-        <Steps currentStep={step} totalSteps={3} className="mb-6" />
+        <Steps currentStep={step + 1} totalSteps={3} className="mb-6" />
 
         <div className="text-center mb-6">
           <h2 className="text-xl font-bold">
-            {step === 1 && "记录新事项"}
-            {step === 2 && "记录时间"}
-            {step === 3 && "完善记录"}
+            {step === 0 && "记录新事项"}
+            {step === 1 && "记录时间"}
+            {step === 2 && "完善记录"}
           </h2>
         </div>
 
-        {step === 1 && (
-          <ActivityStep
-            activity={formData.activity}
-            setActivity={(value) => updateFormField("activity", value)}
-            onNext={handleNext}
+        {step === Step.Title && (
+          <TitleStep
+            title={timeEntryTitle}
+            setTitle={(value) => setTimeEntryTitle(value)}
+            onNext={() => setStep(nextStep(step))}
           />
         )}
 
-        {step === 2 && (
+        {step === Step.Duration && (
           <DurationStep
-            activity={formData.activity}
-            duration={formData.duration}
-            setDuration={(value) => updateFormField("duration", value)}
-            onNext={handleNext}
+            title={timeEntryTitle}
+            setDuration={(value) => console.log(value)}
+            onNext={() => setStep(nextStep(step))}
           />
         )}
 
-        {step === 3 && (
+        {step === Step.Detail && (
           <CompletionStep
             formData={formData}
             onReset={resetForm}
