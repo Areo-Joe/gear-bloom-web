@@ -1,10 +1,11 @@
 import * as React from "react";
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Steps } from "../components/ui/steps";
+import { toast, Toaster } from "sonner";
 
 // Icons
 const ListIcon = () => (
@@ -143,6 +144,7 @@ const DurationStep = ({ title, onNext, setDuration }: IDurationStep) => {
     const from = to - time * 60 * 1000;
 
     setDuration({ from, to });
+    onNext();
   };
 
   return (
@@ -179,56 +181,56 @@ const DurationStep = ({ title, onNext, setDuration }: IDurationStep) => {
   );
 };
 
-const CompletionStep = ({
-  formData,
-  onReset,
-  updateFormField,
-}: {
-  formData: FormData;
-  onReset: () => void;
-  updateFormField: <K extends keyof FormData>(
-    field: K,
-    value: FormData[K],
-  ) => void;
-}) => {
-  const { activity, duration, completionTime, description, tags } = formData;
+interface IDetailStep {
+  range: {
+    from: number;
+    to: number;
+  };
+  setDescription: (description: string) => void;
+  tags: string[];
+  setTags: (tags: string[]) => void;
+  title: string;
+  onNext: () => void;
+}
+const DetailStep = ({
+  range,
+  title,
+  setDescription,
+  setTags,
+  tags,
+  onNext,
+}: IDetailStep) => {
   const [customTag, setCustomTag] = useState("");
 
   // Default tag options
   const defaultTags = ["工作", "学习", "运动", "阅读", "休息", "娱乐"];
 
-  const calculateTimeRange = (): { start: string; end: string } | null => {
-    if (!completionTime || duration === null) return null;
-
-    const end = completionTime;
-    const start = new Date(end.getTime() - duration * 60 * 1000);
-
-    return {
-      start: formatDateTime(start),
-      end: formatDateTime(end),
-    };
-  };
-
-  const timeRange = calculateTimeRange();
-
   const handleDescriptionChange = (
     e: React.ChangeEvent<HTMLTextAreaElement>,
   ) => {
-    updateFormField("description", e.target.value);
+    setDescription(e.target.value.trim());
   };
 
   const toggleTag = (tag: string) => {
-    const newTags = tags.includes(tag)
-      ? tags.filter((t) => t !== tag)
-      : [...tags, tag];
-    updateFormField("tags", newTags);
+    setTags(
+      tags.includes(tag) ? tags.filter((t) => t !== tag) : [...tags, tag],
+    );
   };
 
   const addCustomTag = () => {
-    if (customTag.trim() && !tags.includes(customTag.trim())) {
-      updateFormField("tags", [...tags, customTag.trim()]);
-      setCustomTag("");
+    setCustomTag("");
+
+    const trimmedTag = customTag.trim();
+    if (trimmedTag === "") return;
+
+    if (tags.includes(trimmedTag)) {
+      toast.error(`标签 "${trimmedTag}" 已存在`, {
+        description: "请使用不同的标签名",
+        duration: 3000,
+      });
+      return;
     }
+    toggleTag(trimmedTag);
   };
 
   const handleCustomTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -251,25 +253,22 @@ const CompletionStep = ({
           你太给力了！
         </h3>
         <p className="text-sm text-green-700 dark:text-green-300 max-w-xs mx-auto">
-          你刚刚完成了 <span className="font-medium">{activity}</span> 的工作，
-          {duration && (
-            <span>
-              {" "}
-              投入了 {duration} 分钟的{getEffortPhrase(duration)}
-            </span>
-          )}
+          你刚刚完成了 <span className="font-medium">{title}</span> 的工作，
+          <span>
+            {" "}
+            投入了 {Math.round((range.to - range.from) / 1000 / 60)} 分钟的
+            {getEffortPhrase(Math.round((range.to - range.from) / 1000 / 60))}
+          </span>
           。
         </p>
 
-        {timeRange && (
-          <div className="bg-white/60 dark:bg-black/20 p-2 rounded-lg shadow-sm">
-            <div className="flex items-center justify-center space-x-3 text-sm">
-              <span>{timeRange.start}</span>
-              <div className="h-0.5 w-6 bg-green-300 dark:bg-green-700"></div>
-              <span>{timeRange.end}</span>
-            </div>
+        <div className="bg-white/60 dark:bg-black/20 p-2 rounded-lg shadow-sm">
+          <div className="flex items-center justify-center space-x-3 text-sm">
+            <span>{formatDateTime(new Date(range.from))}</span>
+            <div className="h-0.5 w-6 bg-green-300 dark:bg-green-700"></div>
+            <span>{formatDateTime(new Date(range.to))}</span>
           </div>
-        )}
+        </div>
       </div>
 
       <div className="space-y-4 mt-4">
@@ -282,7 +281,6 @@ const CompletionStep = ({
           </Label>
           <textarea
             id="description"
-            value={description}
             onChange={handleDescriptionChange}
             placeholder="详细描述一下你完成的活动..."
             className="w-full p-2 min-h-[80px] text-sm rounded-md border border-input bg-background"
@@ -350,11 +348,8 @@ const CompletionStep = ({
       </div>
 
       <div className="flex gap-2 mt-6">
-        <Button onClick={onReset} variant="outline" className="flex-1">
+        <Button onClick={onNext} variant="outline" className="flex-1">
           记录下一项
-        </Button>
-        <Button className="flex-1" onClick={onReset}>
-          保存记录
         </Button>
       </div>
     </div>
@@ -395,22 +390,16 @@ const ActivityTracker = () => {
   const navigateToList = useNavigateToList();
   const [step, setStep] = useState<Step>(Step.Title);
   const [timeEntryTitle, setTimeEntryTitle] = useState("");
-  const [timeRange, setTimeRange] = useState<{
-    start: string;
-    end: string;
+  const [timeDuration, setTimeDuration] = useState<{
+    from: number;
+    to: number;
   } | null>(null);
   const [timeEntryDescription, setTimeEntryDescription] = useState("");
   const [timeEntryTags, setTimeEntryTags] = useState<string[]>([]);
 
-  const updateFormField = <K extends keyof FormData>(
-    field: K,
-    value: FormData[K],
-  ) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-10">
+      <Toaster position="top-center" />
       <div className="w-full max-w-sm p-6 border rounded-lg shadow-md bg-card text-card-foreground">
         <div className="flex justify-end mb-4">
           <Button
@@ -445,16 +434,19 @@ const ActivityTracker = () => {
         {step === Step.Duration && (
           <DurationStep
             title={timeEntryTitle}
-            setDuration={(value) => console.log(value)}
+            setDuration={(value) => setTimeDuration(value)}
             onNext={() => setStep(nextStep(step))}
           />
         )}
 
         {step === Step.Detail && (
-          <CompletionStep
-            formData={formData}
-            onReset={resetForm}
-            updateFormField={updateFormField}
+          <DetailStep
+            range={timeDuration!}
+            title={timeEntryTitle}
+            setDescription={setTimeEntryDescription}
+            setTags={setTimeEntryTags}
+            tags={timeEntryTags}
+            onNext={() => setStep(nextStep(step))}
           />
         )}
       </div>
