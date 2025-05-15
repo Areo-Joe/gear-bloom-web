@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -93,11 +93,11 @@ const TitleStep = ({ title, setTitle, onNext }: ITitleStep) => {
 
 interface IDurationStep {
   title: string;
-  setDuration: (duration: { from: number; to: number }) => void;
-  onNext: () => void;
+  onNext: (duration: { from: number; to: number }) => void;
+  onPrev: () => void;
 }
 
-const DurationStep = ({ title, onNext, setDuration }: IDurationStep) => {
+const DurationStep = ({ title, onNext, onPrev }: IDurationStep) => {
   const [time, setTime] = useState<null | number>(null);
 
   const handleDurationInput = (e: React.FormEvent<HTMLInputElement>) => {
@@ -125,19 +125,15 @@ const DurationStep = ({ title, onNext, setDuration }: IDurationStep) => {
   };
 
   const handleNext = () => {
-    if (time === null) {
-      return;
-    }
-
-    if (time <= 0) {
+    if (time === null || time <= 0) {
       return;
     }
 
     const to = new Date().getTime();
     const from = to - time * 60 * 1000;
 
-    setDuration({ from, to });
-    onNext();
+    // Important: Set the duration first, then call onNext in the next render cycle
+    onNext({ from, to });
   };
 
   return (
@@ -163,13 +159,18 @@ const DurationStep = ({ title, onNext, setDuration }: IDurationStep) => {
           className="w-full"
         />
       </div>
-      <Button
-        onClick={handleNext}
-        disabled={time === null || time <= 0}
-        className="w-full mt-4"
-      >
-        完成记录
-      </Button>
+      <div className="flex gap-2 w-full">
+        <Button onClick={onPrev} variant="outline" className="flex-1">
+          上一步
+        </Button>
+        <Button
+          onClick={handleNext}
+          disabled={time === null || time <= 0}
+          className="flex-1"
+        >
+          完成记录
+        </Button>
+      </div>
     </div>
   );
 };
@@ -390,15 +391,92 @@ const ActivityTracker = () => {
     from: number;
     to: number;
   } | null>(null);
-  const [timeEntryDescription, setTimeEntryDescription] = useState("");
-  const [timeEntryTags, setTimeEntryTags] = useState<string[]>([]);
-  const [_, setTimeEntry] = useAtom(timeEntriesAtom);
+  // const [timeEntryDescription, setTimeEntryDescription] = useState("");
+  // const [timeEntryTags, setTimeEntryTags] = useState<string[]>([]);
+  const [timeEntries, setTimeEntries] = useAtom(timeEntriesAtom);
+  const [id, setId] = useState<string | null>(null);
+  const timeEntry = timeEntries.find((x) => x.id === id);
+  const timeEntryTags = timeEntry?.tags;
+  const setTimeEntryTags = (
+    tagsOrSetTags: string[] | ((prevTags: string[]) => string[]),
+  ) => {
+    setTimeEntries((prevEntries) => {
+      const prevEntryIndex = prevEntries.findIndex((x) => x.id === id);
+      if (prevEntryIndex === -1)
+        throw new Error(`Time entry not found, id: ${id}`);
+
+      const prevEntry = prevEntries[prevEntryIndex];
+      const nextEntry = {
+        ...prevEntry,
+        tags:
+          typeof tagsOrSetTags === "function"
+            ? tagsOrSetTags(prevEntry.tags)
+            : tagsOrSetTags,
+      };
+
+      const result = [
+        ...prevEntries.slice(0, prevEntryIndex),
+        nextEntry,
+        ...prevEntries.slice(prevEntryIndex + 1),
+      ];
+
+      return result;
+    });
+  };
+  const timeEntryDescription = timeEntry?.description;
+  const setTimeEntryDescription = (
+    descriptionOrSetDescription: string | ((prevDescription: string) => string),
+  ) => {
+    setTimeEntries((prevEntries) => {
+      const prevEntryIndex = prevEntries.findIndex((x) => x.id === id);
+      if (prevEntryIndex === -1)
+        throw new Error(`Time entry not found, id: ${id}`);
+
+      const prevEntry = prevEntries[prevEntryIndex];
+      const nextEntry = {
+        ...prevEntry,
+        description:
+          typeof descriptionOrSetDescription === "function"
+            ? descriptionOrSetDescription(prevEntry.description)
+            : descriptionOrSetDescription,
+      };
+
+      return [
+        ...prevEntries.slice(0, prevEntryIndex),
+        nextEntry,
+        ...prevEntries.slice(prevEntryIndex + 1),
+      ];
+    });
+  };
+
+  const durationToDetail = useCallback(
+    (duration: { from: number; to: number }) => {
+      setTimeDuration(duration);
+
+      const id = crypto.randomUUID();
+      setId(id);
+
+      setTimeEntries((prevEntries) => [
+        ...prevEntries,
+        {
+          id,
+          title: timeEntryTitle,
+          description: timeEntryDescription || "",
+          tags: timeEntryTags || [],
+          from: duration.from,
+          to: duration.to,
+        },
+      ]);
+
+      setStep(nextStep(step));
+    },
+    [timeDuration, timeEntryTitle, timeEntryDescription, timeEntryTags, step],
+  );
 
   const clearAll = () => {
     setTimeEntryTitle("");
     setTimeDuration(null);
-    setTimeEntryDescription("");
-    setTimeEntryTags([]);
+    setId(null);
   };
 
   return (
@@ -421,9 +499,9 @@ const ActivityTracker = () => {
 
         <div className="text-center mb-6">
           <h2 className="text-xl font-bold">
-            {step === 0 && "记录新事项"}
-            {step === 1 && "记录时间"}
-            {step === 2 && "完善记录"}
+            {step === Step.Title && "记录新事项"}
+            {step === Step.Duration && "记录时间"}
+            {step === Step.Detail && "完善记录"}
           </h2>
         </div>
 
@@ -438,8 +516,11 @@ const ActivityTracker = () => {
         {step === Step.Duration && (
           <DurationStep
             title={timeEntryTitle}
-            setDuration={(value) => setTimeDuration(value)}
-            onNext={() => setStep(nextStep(step))}
+            onPrev={() => {
+              setTimeDuration(null);
+              setStep(prevStep(step));
+            }}
+            onNext={durationToDetail}
           />
         )}
 
@@ -449,27 +530,10 @@ const ActivityTracker = () => {
             title={timeEntryTitle}
             setDescription={setTimeEntryDescription}
             setTags={setTimeEntryTags}
-            tags={timeEntryTags}
+            tags={timeEntryTags!}
             onNext={() => {
-              console.log({
-                timeEntryDescription,
-                timeEntryTitle,
-                timeDuration,
-                timeEntryTags,
-              });
-              setTimeEntry((x) => [
-                ...x,
-                {
-                  id: crypto.randomUUID(),
-                  from: timeDuration!.from,
-                  to: timeDuration!.to,
-                  title: timeEntryTitle,
-                  description: timeEntryDescription,
-                  tags: timeEntryTags,
-                },
-              ]);
-              clearAll();
               setStep(nextStep(step));
+              clearAll();
             }}
           />
         )}

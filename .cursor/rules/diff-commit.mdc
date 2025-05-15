@@ -1,0 +1,8 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+- 已经 git add 过想要提交的文件了，你不需要再 git add
+- 查看 diff 后再 git commit
+- 使用英文写 commit messages

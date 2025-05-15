@@ -8,3 +8,10 @@ import { twMerge } from "tailwind-merge";
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
+
+export function assert(condition: boolean, message?: string) {
+  if (!condition) {
+    throw new Error(message || "Assertion failed, no message provided.");
+  }
+  return true;
+}

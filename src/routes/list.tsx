@@ -67,6 +67,8 @@ function List() {
 
   const [timeEntries] = useAtom(timeEntriesAtom);
 
+  console.log("get time entries", timeEntries);
+
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-md p-6 border rounded-lg shadow-md bg-card text-card-foreground">

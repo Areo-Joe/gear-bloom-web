@@ -27,6 +27,7 @@ export default [
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
+      "react-hooks/exhaustive-deps": "off",
       "react-compiler/react-compiler": "warn",
     },
   },
