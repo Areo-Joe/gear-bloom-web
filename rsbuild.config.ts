@@ -32,4 +32,8 @@ export default defineConfig({
       ],
     },
   },
+  html: {
+    title: "Gear Bloom",
+    favicon: "./public/favicon.ico",
+  },
 });
