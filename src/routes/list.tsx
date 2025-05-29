@@ -101,14 +101,17 @@ function List() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-10">
-      <div className="w-full max-w-md p-6 border rounded-lg shadow-md bg-card text-card-foreground">
-        <div className="flex justify-end mb-4">
+    <div className="container max-w-4xl mx-auto p-6">
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">活动列表</h1>
+            <p className="text-muted-foreground">查看你的所有时间记录</p>
+          </div>
           <Button
             variant="outline"
-            size="sm"
             onClick={toHome}
-            className="flex items-center gap-1"
+            className="flex items-center gap-2"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -120,34 +123,48 @@ function List() {
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="lucide lucide-pencil-line"
+              className="lucide lucide-plus"
             >
-              <path d="M12 20h9"></path>
-              <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+              <path d="M5 12h14" />
+              <path d="M12 5v14" />
             </svg>
-            记录活动
+            记录新活动
           </Button>
         </div>
 
-        <h2 className="text-xl font-bold mb-6 text-center">活动列表</h2>
         {timeEntries.length === 0 ? (
-          <div className="text-center">
-            <p className="text-muted-foreground mb-4">暂无记录</p>
-            <div className="h-40 flex items-center justify-center border-2 border-dashed border-muted-foreground/20 rounded-lg">
-              <p className="text-muted-foreground text-sm">
-                点击右上角按钮添加新记录
+          <div className="text-center py-12">
+            <div className="h-48 flex flex-col items-center justify-center border-2 border-dashed border-muted-foreground/20 rounded-lg">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="48"
+                height="48"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-muted-foreground/40 mb-4"
+              >
+                <path d="M6 2v6h6" />
+                <path d="M21 13a9 9 0 1 1-3-7.7L21 8" />
+              </svg>
+              <p className="text-muted-foreground text-lg mb-2">暂无记录</p>
+              <p className="text-muted-foreground/80 text-sm">
+                点击右上角按钮开始记录你的第一个活动
               </p>
             </div>
           </div>
         ) : (
-          <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
+          <div className="grid gap-4">
             {timeEntries.map((entry) => (
               <div
                 key={entry.id}
-                className="p-4 border rounded-lg hover:shadow-md transition-shadow bg-background/50 relative"
+                className="p-6 border rounded-lg hover:shadow-md transition-shadow bg-card relative"
               >
                 {/* 删除按钮 - 垂直居中在右侧 */}
-                <div className="absolute top-1/2 right-3 -translate-y-1/2">
+                <div className="absolute top-4 right-4">
                   <AlertDialog
                     open={deleteDialogOpen}
                     onOpenChange={setDeleteDialogOpen}
@@ -157,7 +174,7 @@ function List() {
                         variant="ghost"
                         size="sm"
                         onClick={() => openDeleteDialog(entry.id, entry.title)}
-                        className="h-10 w-10 p-0 text-muted-foreground hover:text-destructive"
+                        className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
                         title="删除记录"
                       >
                         <svg
@@ -180,22 +197,22 @@ function List() {
                   </AlertDialog>
                 </div>
 
-                <div className="pr-8">
-                  <div className="mb-2">
-                    <h3 className="font-medium text-base mb-1">
+                <div className="pr-12">
+                  <div className="mb-3">
+                    <h3 className="font-semibold text-lg mb-1">
                       {entry.title}
                     </h3>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-sm text-muted-foreground">
                       {formatDate(entry.from)}
                     </span>
                   </div>
 
-                  <div className="flex items-center text-xs text-muted-foreground mb-3">
+                  <div className="flex items-center text-sm text-muted-foreground mb-4">
                     <div className="flex items-center space-x-2">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        width="12"
-                        height="12"
+                        width="14"
+                        height="14"
                         viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"
@@ -208,24 +225,24 @@ function List() {
                         <polyline points="12 6 12 12 16 14" />
                       </svg>
                       {formatTime(entry.from)} - {formatTime(entry.to)}
-                      <span className="bg-secondary/80 px-1.5 py-0.5 rounded-md text-[10px] ml-1">
+                      <span className="bg-secondary px-2 py-1 rounded-md text-xs ml-2">
                         {getDurationText(entry.from, entry.to)}
                       </span>
                     </div>
                   </div>
 
                   {entry.description && (
-                    <p className="text-sm mb-3 text-foreground/80 line-clamp-2">
+                    <p className="text-sm mb-4 text-foreground/80">
                       {entry.description}
                     </p>
                   )}
 
                   {entry.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mt-2">
+                    <div className="flex flex-wrap gap-2">
                       {entry.tags.map((tag) => (
                         <span
                           key={tag}
-                          className={`text-xs px-2 py-0.5 rounded-full ${getTagColor(tag)}`}
+                          className={`text-xs px-2 py-1 rounded-full ${getTagColor(tag)}`}
                         >
                           {tag}
                         </span>

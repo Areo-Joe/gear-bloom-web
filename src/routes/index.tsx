@@ -543,5 +543,18 @@ const ActivityTracker = () => {
 };
 
 export const Route = createFileRoute("/")({
-  component: ActivityTracker,
+  component: () => (
+    <div className="container max-w-4xl mx-auto p-6">
+      <div className="space-y-6">
+        <div className="text-center space-y-2">
+          <h1 className="text-3xl font-bold tracking-tight">时间记录</h1>
+          <p className="text-muted-foreground">
+            记录你的专注时光，让每一分钟都有意义
+          </p>
+        </div>
+        <ActivityTracker />
+        <Toaster />
+      </div>
+    </div>
+  ),
 });
