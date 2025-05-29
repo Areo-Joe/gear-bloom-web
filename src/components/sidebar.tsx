@@ -3,8 +3,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { Sheet, SheetContent, SheetTrigger } from "../../components/ui/sheet";
 import { Button } from "../../components/ui/button";
 import { ScrollArea } from "../../components/ui/scroll-area";
-import { Separator } from "../../components/ui/separator";
-import { Home, List, Info, Menu, Settings, ChevronRight } from "lucide-react";
+import { Home, List, Info, Menu, ChevronRight } from "lucide-react";
 import { cn } from "../lib/utils";
 
 interface SidebarProps {
@@ -89,24 +88,6 @@ const SidebarContent: React.FC<{ onLinkClick?: () => void }> = ({
                   </Link>
                 );
               })}
-            </div>
-          </div>
-
-          <Separator />
-
-          <div className="px-3 py-2">
-            <h3 className="mb-2 text-sm font-medium text-muted-foreground">
-              设置
-            </h3>
-            <div className="space-y-1">
-              <Button
-                variant="ghost"
-                className="w-full justify-start gap-3"
-                onClick={onLinkClick}
-              >
-                <Settings className="h-4 w-4" />
-                <span>设置</span>
-              </Button>
             </div>
           </div>
         </div>
