@@ -4,20 +4,7 @@ import { Sheet, SheetContent, SheetTrigger } from "../../components/ui/sheet";
 import { Button } from "../../components/ui/button";
 import { ScrollArea } from "../../components/ui/scroll-area";
 import { Separator } from "../../components/ui/separator";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "../../components/ui/avatar";
-import {
-  Home,
-  List,
-  Info,
-  Menu,
-  Settings,
-  User,
-  ChevronRight,
-} from "lucide-react";
+import { Home, List, Info, Menu, Settings, ChevronRight } from "lucide-react";
 import { cn } from "../lib/utils";
 
 interface SidebarProps {
@@ -124,22 +111,6 @@ const SidebarContent: React.FC<{ onLinkClick?: () => void }> = ({
           </div>
         </div>
       </ScrollArea>
-
-      {/* User Profile */}
-      <div className="border-t px-3 py-4">
-        <div className="flex items-center gap-3 rounded-lg px-3 py-2">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src="/placeholder-avatar.jpg" alt="用户头像" />
-            <AvatarFallback>
-              <User className="h-4 w-4" />
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 space-y-1">
-            <p className="text-sm font-medium">用户名</p>
-            <p className="text-xs text-muted-foreground">user@example.com</p>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
@@ -149,7 +120,7 @@ export const DesktopSidebar: React.FC<SidebarProps> = ({ className }) => {
   return (
     <div
       className={cn(
-        "hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 lg:border-r lg:bg-background",
+        "hidden lg:flex lg:flex-col lg:border-r lg:bg-background",
         className,
       )}
     >

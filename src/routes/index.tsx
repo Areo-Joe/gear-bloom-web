@@ -480,9 +480,9 @@ const ActivityTracker = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-10">
+    <div className="flex justify-center w-full">
       <Toaster position="top-center" />
-      <div className="w-full max-w-sm p-6 border rounded-lg shadow-md bg-card text-card-foreground">
+      <div className="w-full max-w-md sm:max-w-lg md:max-w-xl p-8 border rounded-xl shadow-lg bg-card text-card-foreground">
         <div className="flex justify-end mb-4">
           <Button
             variant="outline"
@@ -544,17 +544,8 @@ const ActivityTracker = () => {
 
 export const Route = createFileRoute("/")({
   component: () => (
-    <div className="container max-w-4xl mx-auto p-6">
-      <div className="space-y-6">
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">时间记录</h1>
-          <p className="text-muted-foreground">
-            记录你的专注时光，让每一分钟都有意义
-          </p>
-        </div>
-        <ActivityTracker />
-        <Toaster />
-      </div>
+    <div className="h-full flex items-center justify-center p-6">
+      <ActivityTracker />
     </div>
   ),
 });
