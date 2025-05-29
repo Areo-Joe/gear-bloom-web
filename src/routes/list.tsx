@@ -1,6 +1,17 @@
 import * as React from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { timeEntriesAtom } from "../atoms/time";
 import { useAtom } from "jotai";
 
@@ -65,7 +76,29 @@ function useToHome() {
 function List() {
   const toHome = useToHome();
 
-  const [timeEntries] = useAtom(timeEntriesAtom);
+  const [timeEntries, setTimeEntries] = useAtom(timeEntriesAtom);
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const [entryToDelete, setEntryToDelete] = React.useState<{
+    id: string;
+    title: string;
+  } | null>(null);
+
+  // 打开删除确认对话框
+  const openDeleteDialog = (id: string, title: string) => {
+    setEntryToDelete({ id, title });
+    setDeleteDialogOpen(true);
+  };
+
+  // 执行删除
+  const confirmDelete = () => {
+    if (entryToDelete) {
+      setTimeEntries((prev) =>
+        prev.filter((entry) => entry.id !== entryToDelete.id),
+      );
+      setDeleteDialogOpen(false);
+      setEntryToDelete(null);
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-10">
@@ -111,61 +144,121 @@ function List() {
             {timeEntries.map((entry) => (
               <div
                 key={entry.id}
-                className="p-4 border rounded-lg hover:shadow-md transition-shadow bg-background/50"
+                className="p-4 border rounded-lg hover:shadow-md transition-shadow bg-background/50 relative"
               >
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-medium text-base">{entry.title}</h3>
-                  <span className="text-xs text-muted-foreground">
-                    {formatDate(entry.from)}
-                  </span>
+                {/* 删除按钮 - 垂直居中在右侧 */}
+                <div className="absolute top-1/2 right-3 -translate-y-1/2">
+                  <AlertDialog
+                    open={deleteDialogOpen}
+                    onOpenChange={setDeleteDialogOpen}
+                  >
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openDeleteDialog(entry.id, entry.title)}
+                        className="h-10 w-10 p-0 text-muted-foreground hover:text-destructive"
+                        title="删除记录"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M3 6h18" />
+                          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                          <path d="M8 6V4c0-1 1-2 2-2h4c-1 0 2 1 2 2v2" />
+                        </svg>
+                      </Button>
+                    </AlertDialogTrigger>
+                  </AlertDialog>
                 </div>
 
-                <div className="flex items-center text-xs text-muted-foreground mb-3">
-                  <div className="flex items-center space-x-2">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="mr-1"
-                    >
-                      <circle cx="12" cy="12" r="10" />
-                      <polyline points="12 6 12 12 16 14" />
-                    </svg>
-                    {formatTime(entry.from)} - {formatTime(entry.to)}
-                    <span className="bg-secondary/50 px-1.5 py-0.5 rounded-md text-[10px] ml-1">
-                      {getDurationText(entry.from, entry.to)}
+                <div className="pr-8">
+                  <div className="mb-2">
+                    <h3 className="font-medium text-base mb-1">
+                      {entry.title}
+                    </h3>
+                    <span className="text-xs text-muted-foreground">
+                      {formatDate(entry.from)}
                     </span>
                   </div>
-                </div>
 
-                {entry.description && (
-                  <p className="text-sm mb-3 text-foreground/80 line-clamp-2">
-                    {entry.description}
-                  </p>
-                )}
-
-                {entry.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mt-2">
-                    {entry.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className={`text-xs px-2 py-0.5 rounded-full ${getTagColor(tag)}`}
+                  <div className="flex items-center text-xs text-muted-foreground mb-3">
+                    <div className="flex items-center space-x-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="mr-1"
                       >
-                        {tag}
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                      </svg>
+                      {formatTime(entry.from)} - {formatTime(entry.to)}
+                      <span className="bg-secondary/80 px-1.5 py-0.5 rounded-md text-[10px] ml-1">
+                        {getDurationText(entry.from, entry.to)}
                       </span>
-                    ))}
+                    </div>
                   </div>
-                )}
+
+                  {entry.description && (
+                    <p className="text-sm mb-3 text-foreground/80 line-clamp-2">
+                      {entry.description}
+                    </p>
+                  )}
+
+                  {entry.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {entry.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className={`text-xs px-2 py-0.5 rounded-full ${getTagColor(tag)}`}
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>
         )}
+
+        {/* 删除确认对话框 */}
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>确认删除</AlertDialogTitle>
+              <AlertDialogDescription>
+                确定要删除活动&ldquo;{entryToDelete?.title}
+                &rdquo;吗？此操作无法撤销。
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>取消</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={confirmDelete}
+                className="bg-destructive text-white hover:bg-destructive/90"
+              >
+                删除
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
