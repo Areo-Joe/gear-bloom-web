@@ -3,7 +3,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { Sheet, SheetContent, SheetTrigger } from "../../components/ui/sheet";
 import { Button } from "../../components/ui/button";
 import { ScrollArea } from "../../components/ui/scroll-area";
-import { Home, List, Info, Menu, ChevronRight } from "lucide-react";
+import { Home, List, Info, Menu, ChevronRight, BarChart3 } from "lucide-react";
 import { cn } from "../lib/utils";
 
 interface SidebarProps {
@@ -29,6 +29,12 @@ const navItems: NavItem[] = [
     href: "/list",
     icon: List,
     description: "查看所有项目",
+  },
+  {
+    title: "统计",
+    href: "/stats",
+    icon: BarChart3,
+    description: "数据分析与统计",
   },
   {
     title: "关于",
