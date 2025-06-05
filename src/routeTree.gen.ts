@@ -11,117 +11,149 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
-import { Route as StatsImport } from './routes/stats'
-import { Route as ListImport } from './routes/list'
-import { Route as AboutImport } from './routes/about'
-import { Route as IndexImport } from './routes/index'
+import { Route as LayoutImport } from './routes/_layout'
+import { Route as LayoutIndexImport } from './routes/_layout.index'
+import { Route as LayoutStatsImport } from './routes/_layout.stats'
+import { Route as LayoutListImport } from './routes/_layout.list'
+import { Route as LayoutAboutImport } from './routes/_layout.about'
 
 // Create/Update Routes
 
-const StatsRoute = StatsImport.update({
-  id: '/stats',
-  path: '/stats',
+const LayoutRoute = LayoutImport.update({
+  id: '/_layout',
   getParentRoute: () => rootRoute,
 } as any)
 
-const ListRoute = ListImport.update({
-  id: '/list',
-  path: '/list',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const AboutRoute = AboutImport.update({
-  id: '/about',
-  path: '/about',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const IndexRoute = IndexImport.update({
+const LayoutIndexRoute = LayoutIndexImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => LayoutRoute,
+} as any)
+
+const LayoutStatsRoute = LayoutStatsImport.update({
+  id: '/stats',
+  path: '/stats',
+  getParentRoute: () => LayoutRoute,
+} as any)
+
+const LayoutListRoute = LayoutListImport.update({
+  id: '/list',
+  path: '/list',
+  getParentRoute: () => LayoutRoute,
+} as any)
+
+const LayoutAboutRoute = LayoutAboutImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => LayoutRoute,
 } as any)
 
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexImport
+    '/_layout': {
+      id: '/_layout'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof LayoutImport
       parentRoute: typeof rootRoute
     }
-    '/about': {
-      id: '/about'
+    '/_layout/about': {
+      id: '/_layout/about'
       path: '/about'
       fullPath: '/about'
-      preLoaderRoute: typeof AboutImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof LayoutAboutImport
+      parentRoute: typeof LayoutImport
     }
-    '/list': {
-      id: '/list'
+    '/_layout/list': {
+      id: '/_layout/list'
       path: '/list'
       fullPath: '/list'
-      preLoaderRoute: typeof ListImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof LayoutListImport
+      parentRoute: typeof LayoutImport
     }
-    '/stats': {
-      id: '/stats'
+    '/_layout/stats': {
+      id: '/_layout/stats'
       path: '/stats'
       fullPath: '/stats'
-      preLoaderRoute: typeof StatsImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof LayoutStatsImport
+      parentRoute: typeof LayoutImport
+    }
+    '/_layout/': {
+      id: '/_layout/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof LayoutIndexImport
+      parentRoute: typeof LayoutImport
     }
   }
 }
 
 // Create and export the route tree
 
+interface LayoutRouteChildren {
+  LayoutAboutRoute: typeof LayoutAboutRoute
+  LayoutListRoute: typeof LayoutListRoute
+  LayoutStatsRoute: typeof LayoutStatsRoute
+  LayoutIndexRoute: typeof LayoutIndexRoute
+}
+
+const LayoutRouteChildren: LayoutRouteChildren = {
+  LayoutAboutRoute: LayoutAboutRoute,
+  LayoutListRoute: LayoutListRoute,
+  LayoutStatsRoute: LayoutStatsRoute,
+  LayoutIndexRoute: LayoutIndexRoute,
+}
+
+const LayoutRouteWithChildren =
+  LayoutRoute._addFileChildren(LayoutRouteChildren)
+
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/list': typeof ListRoute
-  '/stats': typeof StatsRoute
+  '': typeof LayoutRouteWithChildren
+  '/about': typeof LayoutAboutRoute
+  '/list': typeof LayoutListRoute
+  '/stats': typeof LayoutStatsRoute
+  '/': typeof LayoutIndexRoute
 }
 
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/list': typeof ListRoute
-  '/stats': typeof StatsRoute
+  '/about': typeof LayoutAboutRoute
+  '/list': typeof LayoutListRoute
+  '/stats': typeof LayoutStatsRoute
+  '/': typeof LayoutIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
-  '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/list': typeof ListRoute
-  '/stats': typeof StatsRoute
+  '/_layout': typeof LayoutRouteWithChildren
+  '/_layout/about': typeof LayoutAboutRoute
+  '/_layout/list': typeof LayoutListRoute
+  '/_layout/stats': typeof LayoutStatsRoute
+  '/_layout/': typeof LayoutIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/list' | '/stats'
+  fullPaths: '' | '/about' | '/list' | '/stats' | '/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/list' | '/stats'
-  id: '__root__' | '/' | '/about' | '/list' | '/stats'
+  to: '/about' | '/list' | '/stats' | '/'
+  id:
+    | '__root__'
+    | '/_layout'
+    | '/_layout/about'
+    | '/_layout/list'
+    | '/_layout/stats'
+    | '/_layout/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  AboutRoute: typeof AboutRoute
-  ListRoute: typeof ListRoute
-  StatsRoute: typeof StatsRoute
+  LayoutRoute: typeof LayoutRouteWithChildren
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  AboutRoute: AboutRoute,
-  ListRoute: ListRoute,
-  StatsRoute: StatsRoute,
+  LayoutRoute: LayoutRouteWithChildren,
 }
 
 export const routeTree = rootRoute
@@ -134,23 +166,33 @@ export const routeTree = rootRoute
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
-        "/",
-        "/about",
-        "/list",
-        "/stats"
+        "/_layout"
       ]
     },
-    "/": {
-      "filePath": "index.tsx"
+    "/_layout": {
+      "filePath": "_layout.tsx",
+      "children": [
+        "/_layout/about",
+        "/_layout/list",
+        "/_layout/stats",
+        "/_layout/"
+      ]
     },
-    "/about": {
-      "filePath": "about.tsx"
+    "/_layout/about": {
+      "filePath": "_layout.about.tsx",
+      "parent": "/_layout"
     },
-    "/list": {
-      "filePath": "list.tsx"
+    "/_layout/list": {
+      "filePath": "_layout.list.tsx",
+      "parent": "/_layout"
     },
-    "/stats": {
-      "filePath": "stats.tsx"
+    "/_layout/stats": {
+      "filePath": "_layout.stats.tsx",
+      "parent": "/_layout"
+    },
+    "/_layout/": {
+      "filePath": "_layout.index.tsx",
+      "parent": "/_layout"
     }
   }
 }

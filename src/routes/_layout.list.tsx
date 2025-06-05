@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { timeEntriesAtom } from "../atoms/time";
 import { useAtom } from "jotai";
+import { Plus, RefreshCcw, Trash2, Clock } from "lucide-react";
 
 // 格式化时间戳为 HH:MM 格式
 const formatTime = (timestamp: number): string => {
@@ -64,7 +65,7 @@ const getTagColor = (tag: string): string => {
   );
 };
 
-export const Route = createFileRoute("/list")({
+export const Route = createFileRoute("/_layout/list")({
   component: List,
 });
 
@@ -113,21 +114,7 @@ function List() {
             onClick={toHome}
             className="flex items-center gap-2"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="lucide lucide-plus"
-            >
-              <path d="M5 12h14" />
-              <path d="M12 5v14" />
-            </svg>
+            <Plus className="w-4 h-4" />
             记录新活动
           </Button>
         </div>
@@ -135,21 +122,7 @@ function List() {
         {timeEntries.length === 0 ? (
           <div className="text-center py-12">
             <div className="h-48 flex flex-col items-center justify-center border-2 border-dashed border-muted-foreground/20 rounded-lg">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="48"
-                height="48"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-muted-foreground/40 mb-4"
-              >
-                <path d="M6 2v6h6" />
-                <path d="M21 13a9 9 0 1 1-3-7.7L21 8" />
-              </svg>
+              <RefreshCcw className="w-12 h-12 text-muted-foreground/40 mb-4" />
               <p className="text-muted-foreground text-lg mb-2">暂无记录</p>
               <p className="text-muted-foreground/80 text-sm">
                 点击右上角按钮开始记录你的第一个活动
@@ -177,21 +150,7 @@ function List() {
                         className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
                         title="删除记录"
                       >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M3 6h18" />
-                          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-                          <path d="M8 6V4c0-1 1-2 2-2h4c-1 0 2 1 2 2v2" />
-                        </svg>
+                        <Trash2 className="w-3.5 h-3.5" />
                       </Button>
                     </AlertDialogTrigger>
                   </AlertDialog>
@@ -209,21 +168,7 @@ function List() {
 
                   <div className="flex items-center text-sm text-muted-foreground mb-4">
                     <div className="flex items-center space-x-2">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="mr-1"
-                      >
-                        <circle cx="12" cy="12" r="10" />
-                        <polyline points="12 6 12 12 16 14" />
-                      </svg>
+                      <Clock className="w-3.5 h-3.5 mr-1" />
                       {formatTime(entry.from)} - {formatTime(entry.to)}
                       <span className="bg-secondary px-2 py-1 rounded-md text-xs ml-2">
                         {getDurationText(entry.from, entry.to)}

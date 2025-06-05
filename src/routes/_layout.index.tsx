@@ -542,7 +542,7 @@ const ActivityTracker = () => {
   );
 };
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_layout/")({
   component: () => (
     <div className="h-full flex items-center justify-center p-6">
       <ActivityTracker />

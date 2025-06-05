@@ -1,10 +1,14 @@
 import * as React from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Sheet, SheetContent, SheetTrigger } from "../../components/ui/sheet";
-import { Button } from "../../components/ui/button";
-import { ScrollArea } from "../../components/ui/scroll-area";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from "../../../components/ui/sheet";
+import { Button } from "../../../components/ui/button";
+import { ScrollArea } from "../../../components/ui/scroll-area";
 import { Home, List, Info, Menu, ChevronRight, BarChart3 } from "lucide-react";
-import { cn } from "../lib/utils";
+import { cn } from "../../lib/utils";
 
 interface SidebarProps {
   className?: string;

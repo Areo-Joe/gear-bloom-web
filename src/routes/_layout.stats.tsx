@@ -16,8 +16,9 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { CartesianGrid, XAxis, YAxis, LineChart, Line } from "recharts";
+import { RefreshCw } from "lucide-react";
 
-export const Route = createFileRoute("/stats")({
+export const Route = createFileRoute("/_layout/stats")({
   component: Stats,
 });
 
@@ -89,22 +90,7 @@ function Stats() {
 
           <div className="text-center py-12">
             <div className="h-48 flex flex-col items-center justify-center border-2 border-dashed border-muted-foreground/20 rounded-lg">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="48"
-                height="48"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-muted-foreground/40 mb-4"
-              >
-                <path d="M3 3v5h5" />
-                <path d="M3 8a9 9 0 0 1 9-9 9.9 9.9 0 0 1 3.8 1" />
-                <path d="M21 3A9 9 0 0 1 12 21a9.9 9.9 0 0 1-3.8-1" />
-              </svg>
+              <RefreshCw className="w-12 h-12 text-muted-foreground/40 mb-4" />
               <p className="text-muted-foreground text-lg mb-2">暂无统计数据</p>
               <p className="text-muted-foreground/80 text-sm">
                 开始记录活动后就能看到详细的统计分析了
